@@ -1,0 +1,86 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: 'Build Release'
+jobs:
+  buildx64:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        arch: [ x64 ]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.x
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Restore Cache
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build App Dependencies
+        run: yarn deps:all
+
+      - name: Build App
+        run: yarn build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  buildarmv7:
+    name: Build armv7
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pguyot/arm-runner-action@v2
+        name: Build Dependencies
+        with:
+          base_image: raspios_lite:latest
+          cpu: cortex-a7
+          image_additional_mb: 10240
+          bind_mount_repository: true
+          commands: |
+            sudo apt update && sudo apt install git ruby -y
+            wget https://nodejs.org/dist/v20.11.1/node-v20.11.1-linux-armv7l.tar.xz
+            tar -xf node-v20.11.1-linux-armv7l.tar.xz
+            cd node-v20.11.1-linux-armv7l
+            sudo cp -R * /usr/
+            cd ..
+            npm i -g yarn
+            
+            yarn install --frozen-lockfile
+            yarn deps:all
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.x
+
+      - name: Fix Permissions
+        run: |
+          sudo rm -rf node_modules
+          sudo chown runner . -R
+          yarn install --frozen-lockfile
+
+      - name: Build App
+        run: yarn build armv7l
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

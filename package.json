@@ -1,0 +1,35 @@
+{
+  "name": "easybloqs",
+  "description": "Desktop version of Leaphy EasyBloqs",
+  "author": {
+    "name": "Leaphy Robotics",
+    "email": "contact@leaphy.org"
+  },
+  "homepage": "https://www.leaphyfoundation.com/",
+  "version": "0.0.1",
+  "license": "GPLv3",
+  "scripts": {
+    "deps:webbased": "node scripts/build-leaphy-webbased.js",
+    "deps:python": "node scripts/build-python-bundle.js",
+    "deps:arduino": "node scripts/setup-arduino-cli.js",
+    "deps:all": "yarn deps:webbased && yarn deps:python && yarn deps:arduino",
+    "build": "tsc && node scripts/build-electron.js",
+    "start": "tsc && electron build"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/mime": "^4.0.0",
+    "decompress": "^4.2.1",
+    "electron": "^28.2.1",
+    "electron-builder": "^24.9.1",
+    "follow-redirects": "^1.15.5",
+    "prettier": "^3.2.5",
+    "tar": "^6.2.0",
+    "typescript": "^5.3.3",
+    "unzipper": "^0.10.14"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "express": "^4.19.2"
+  }
+}
