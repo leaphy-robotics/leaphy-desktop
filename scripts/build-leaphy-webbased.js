@@ -11,7 +11,7 @@ async function buildWebbased() {
   execSync("yarn install");
   execSync("yarn buildLocal");
 
-  fs.renameSync("dist", "../public");
+  fs.renameSync("dist/browser", "../public");
   process.chdir("..");
   fs.rmSync("leaphy-webbased", { recursive: true, force: true });
 
